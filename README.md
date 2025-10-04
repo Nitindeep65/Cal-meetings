@@ -52,7 +52,7 @@ Quick start:
 cd "/Users/nittin/Desktop/Take home/cal-meetings"
 
 # Set up your environment variables in .env.local
-cp .env.local.example .env.local
+cp .env.example .env.local
 # Edit .env.local with your actual Google OAuth credentials and API keys
 
 npm run dev

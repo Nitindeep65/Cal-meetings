@@ -11,7 +11,7 @@ export const authOptions = {
           scope: "openid email profile https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events"
         }
       }
-    })
+    }),
   ],
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

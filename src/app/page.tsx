@@ -11,6 +11,7 @@ import { Services } from "../components/Services";
 import { Team } from "../components/Team";
 // SEO Metadata for Calendar App
 export const metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || "https://your-app-name.vercel.app"),
   title: "Cal Meetings - Smart Calendar Management with AI Insights | Schedule & Analyze",
   description: "Transform your meeting productivity with Cal Meetings. AI-powered calendar app that generates smart summaries, preparation insights, and analytics for your Google Calendar events. Schedule smarter, meet better.",
   keywords: "calendar app, meeting scheduler, AI calendar, Google Calendar integration, meeting analytics, smart scheduling, calendar management, meeting insights, productivity tools, calendar AI",
@@ -21,7 +22,7 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "http://localhost:3000",
+    url: process.env.NEXTAUTH_URL || "https://your-app-name.vercel.app",
     title: "Cal Meetings - AI-Powered Calendar Management",
     description: "Smart calendar app with AI-generated meeting summaries and preparation insights. Connect your Google Calendar and boost your meeting productivity.",
     siteName: "Cal Meetings",
@@ -41,7 +42,7 @@ export const metadata = {
     images: ["/images/twitter-calendar-app.jpg"]
   },
   alternates: {
-    canonical: "http://localhost:3000"
+    canonical: process.env.NEXTAUTH_URL || "https://your-app-name.vercel.app"
   },
   category: "productivity"
 };
