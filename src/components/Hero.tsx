@@ -26,9 +26,9 @@ export const Hero = () => {
           Transform your meeting productivity with AI-powered summaries, smart preparation insights, and seamless Google Calendar integration. Schedule smarter, meet better.
         </p>
 
-        <div className="flex justify-center lg:justify-start">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
           <Link href="/login">
-            <Button className="w-full md:w-auto px-8">Start Managing Your Calendar</Button>
+            <Button className="w-full sm:w-auto px-8">Start Managing Your Calendar</Button>
           </Link>
         </div>
       </div>
