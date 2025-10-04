@@ -1,5 +1,6 @@
 import { Button } from "./ui/button";
 import { HeroCards } from "./HeroCards";
+import Link from "next/link";
 
 export const Hero = () => {
   return (
@@ -8,26 +9,27 @@ export const Hero = () => {
         <main className="text-5xl md:text-6xl font-bold">
           <h1 className="inline">
             <span className="inline bg-gradient-to-r from-[#F596D3]  to-[#D247BF] text-transparent bg-clip-text">
-              Shadcn
+              Smart
             </span>{" "}
-            landing page
+            Calendar
           </h1>{" "}
-          for{" "}
+          with{" "}
           <h2 className="inline">
             <span className="inline bg-gradient-to-r from-[#61DAFB] via-[#1fc0f1] to-[#03a3d7] text-transparent bg-clip-text">
-              React
+              AI
             </span>{" "}
-            developers
+            Insights
           </h2>
         </main>
 
         <p className="text-xl text-muted-foreground md:w-10/12 mx-auto lg:mx-0">
-          Build your React landing page effortlessly with the required sections
-          to your project.
+          Transform your meeting productivity with AI-powered summaries, smart preparation insights, and seamless Google Calendar integration. Schedule smarter, meet better.
         </p>
 
         <div className="flex justify-center lg:justify-start">
-          <Button className="w-full md:w-auto px-8">Get Started</Button>
+          <Link href="/login">
+            <Button className="w-full md:w-auto px-8">Start Managing Your Calendar</Button>
+          </Link>
         </div>
       </div>
 

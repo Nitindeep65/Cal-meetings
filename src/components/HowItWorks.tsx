@@ -11,27 +11,27 @@ interface FeatureProps {
 const features: FeatureProps[] = [
   {
     icon: <MedalIcon />,
-    title: "Accessibility",
+    title: "Connect Google Calendar",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum quas provident cum",
+      "Sign in with your Google account and securely connect your calendar for seamless integration and real-time synchronization.",
   },
   {
     icon: <MapIcon />,
-    title: "Community",
+    title: "View Your Events",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum quas provident cum",
+      "Access all your calendar events in one intelligent dashboard with clean organization and smart filtering options.",
   },
   {
     icon: <PlaneIcon />,
-    title: "Scalability",
+    title: "Generate AI Insights",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum quas provident cum",
+      "Get instant AI-powered summaries for past meetings and smart preparation insights for upcoming events.",
   },
   {
     icon: <GiftIcon />,
-    title: "Gamification",
+    title: "Boost Productivity",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum quas provident cum",
+      "Transform your meeting experience with actionable insights, better preparation, and enhanced productivity tracking.",
   },
 ];
 
@@ -49,8 +49,7 @@ export const HowItWorks = () => {
         Step-by-Step Guide
       </h2>
       <p className="md:w-3/4 mx-auto mt-4 mb-8 text-xl text-muted-foreground">
-        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Veritatis
-        dolor pariatur sit!
+        Get started with Cal Meetings in just a few simple steps and transform your calendar management experience today.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

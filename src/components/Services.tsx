@@ -12,21 +12,21 @@ interface ServiceProps {
 
 const serviceList: ServiceProps[] = [
   {
-    title: "Code Collaboration",
+    title: "AI Meeting Summaries",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
+      "Automatically generate intelligent summaries of your past meetings with key takeaways, action items, and important decisions using advanced AI technology.",
     icon: <ChartIcon />,
   },
   {
-    title: "Project Management",
+    title: "Smart Preparation Insights",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
+      "Get AI-powered preparation suggestions for upcoming meetings based on attendees, topics, and historical context to maximize meeting effectiveness.",
     icon: <WalletIcon />,
   },
   {
-    title: "Task Automation",
+    title: "Google Calendar Integration",
     description:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi nesciunt est nostrum omnis ab sapiente.",
+      "Seamlessly connect with your Google Calendar for real-time event management, automatic syncing, and unified calendar experience across all devices.",
     icon: <MagnifierIcon />,
   },
 ];
@@ -38,14 +38,13 @@ export const Services = () => {
         <div>
           <h2 className="text-3xl md:text-4xl font-bold">
             <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
-              Client-Centric{" "}
+              Intelligent{" "}
             </span>
-            Services
+            Calendar Features
           </h2>
 
           <p className="text-muted-foreground text-xl mt-4 mb-8 ">
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Veritatis
-            dolor.
+            Discover powerful AI-driven features that transform how you manage meetings and maximize your calendar productivity.
           </p>
 
           <div className="flex flex-col gap-8">

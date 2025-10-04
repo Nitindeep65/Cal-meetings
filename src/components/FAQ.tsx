@@ -13,33 +13,33 @@ interface FAQProps {
 
 const FAQList: FAQProps[] = [
   {
-    question: "Is this template free?",
-    answer: "Yes. It is a free ChadcnUI template.",
+    question: "How does Cal Meetings integrate with Google Calendar?",
+    answer: "Cal Meetings seamlessly connects with your Google Calendar through secure OAuth authentication. Once connected, it automatically syncs your events and provides real-time access to your calendar data.",
     value: "item-1",
   },
   {
-    question: "Lorem ipsum dolor sit amet consectetur adipisicing elit?",
+    question: "What kind of AI insights can I get for my meetings?",
     answer:
-      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint labore quidem quam? Consectetur sapiente iste rerum reiciendis animi nihil nostrum sit quo, modi quod.",
+      "Our AI provides two types of insights: intelligent summaries for past meetings that highlight key takeaways and action items, and smart preparation suggestions for upcoming meetings based on attendees, topics, and historical context.",
     value: "item-2",
   },
   {
     question:
-      "Lorem ipsum dolor sit amet  Consectetur natus dolores minus quibusdam?",
+      "Is my calendar data secure and private?",
     answer:
-      "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Labore qui nostrum reiciendis veritatis necessitatibus maxime quis ipsa vitae cumque quo?",
+      "Absolutely. We use industry-standard security measures and OAuth 2.0 authentication. Your calendar data is never stored permanently on our servers and is only accessed when you're actively using the application.",
     value: "item-3",
   },
   {
-    question: "Lorem ipsum dolor sit amet, consectetur adipisicing elit?",
-    answer: "Lorem ipsum dolor sit amet consectetur, adipisicing elit.",
+    question: "Do I need to install any software to use Cal Meetings?",
+    answer: "No installation required! Cal Meetings is a web-based application that works directly in your browser. Just sign in with your Google account and start managing your calendar intelligently.",
     value: "item-4",
   },
   {
     question:
-      "Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur natus?",
+      "Can I use Cal Meetings with multiple Google accounts?",
     answer:
-      "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sint labore quidem quam? Consectetur sapiente iste rerum reiciendis animi nihil nostrum sit quo, modi quod.",
+      "Currently, Cal Meetings supports one Google account per session. You can easily switch between accounts by signing out and signing in with a different Google account.",
     value: "item-5",
   },
 ];
