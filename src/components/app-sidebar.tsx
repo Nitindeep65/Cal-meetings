@@ -12,6 +12,7 @@ import {
   Search,
   Plus,
 } from "lucide-react"
+import { useSession } from "next-auth/react"
 
 import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
@@ -27,12 +28,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const data = {
-  user: {
-    name: "Cal User",
-    email: "user@cal-meetings.com",
-    avatar: "/avatars/user.jpg",
-  },
+const staticData = {
   navMain: [
     {
       title: "Calendar",
@@ -125,6 +121,21 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = useSession()
+
+  // Create dynamic data object with user info from session
+  const data = {
+    user: {
+      name: session?.user?.name || "Cal User",
+      email: session?.user?.email || "user@cal-meetings.com", 
+      avatar: session?.user?.image || "/avatars/user.jpg",
+    },
+    navMain: staticData.navMain,
+    navClouds: staticData.navClouds,
+    navSecondary: staticData.navSecondary,
+    documents: staticData.documents,
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>

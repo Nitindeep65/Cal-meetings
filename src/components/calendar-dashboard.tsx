@@ -1,46 +1,136 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns'
-import { ChevronLeft, ChevronRight, Plus, Clock, Users, Video, Calendar } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Clock, Users, Video, Calendar, Brain, Lightbulb, TrendingUp, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { CalendarAuth } from '@/components/calendar-auth'
+import type { EnhancedCalendarEvent, CalendarStats } from '@/lib/calendar-service'
 
-// Sample meeting data
-const sampleMeetings = [
-  {
-    id: 1,
-    title: "Team Standup",
-    time: "09:00 AM",
-    duration: "30 min",
-    type: "video",
-    attendees: 5,
-    date: new Date(),
-  },
-  {
-    id: 2,
-    title: "Client Review",
-    time: "02:00 PM", 
-    duration: "60 min",
-    type: "video",
-    attendees: 3,
-    date: addDays(new Date(), 1),
-  },
-  {
-    id: 3,
-    title: "Sprint Planning",
-    time: "10:00 AM",
-    duration: "120 min", 
-    type: "in-person",
-    attendees: 8,
-    date: addDays(new Date(), 2),
+// Interface for processed meetings to display
+interface ProcessedMeeting {
+  id: string
+  title: string
+  time: string
+  duration: string
+  type: 'video' | 'in-person' | 'unknown'
+  attendees: number
+  date: Date
+  summary?: {
+    summary: string
+    keyPoints: string[]
+    actionItems: string[]
+    sentiment: 'positive' | 'neutral' | 'negative'
   }
-]
+  aiInsights?: {
+    preparation?: string[]
+    suggestedAgenda?: string[]
+  }
+}
 
 export function CalendarDashboard() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
+  const [meetings, setMeetings] = useState<ProcessedMeeting[]>([])
+  const [stats, setStats] = useState<CalendarStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [needsCalendarAuth, setNeedsCalendarAuth] = useState(false)
+
+  // Fetch calendar data
+  useEffect(() => {
+    const fetchCalendarData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        // Get events for current month
+        const monthStart = startOfMonth(currentDate)
+        const monthEnd = endOfMonth(currentDate)
+        
+        // Fetch events from API
+        const eventsResponse = await fetch(
+          `/api/calendar/events?startDate=${monthStart.toISOString()}&endDate=${monthEnd.toISOString()}`
+        )
+        
+        if (!eventsResponse.ok) {
+          throw new Error('Failed to fetch calendar events')
+        }
+        
+        const eventsData = await eventsResponse.json()
+        
+        if (!eventsData.success) {
+          throw new Error(eventsData.error || 'Failed to fetch calendar events')
+        }
+
+        // Convert events to ProcessedMeeting format
+        const processedMeetings: ProcessedMeeting[] = eventsData.events.map((event: EnhancedCalendarEvent) => ({
+          id: event.id,
+          title: event.title,
+          time: format(new Date(event.start), 'h:mm a'),
+          duration: calculateDuration(event.start, event.end),
+          type: event.location?.toLowerCase().includes('virtual') || event.location?.toLowerCase().includes('zoom') ? 'video' : 
+                event.location ? 'in-person' : 'unknown',
+          attendees: event.attendees?.length || 0,
+          date: new Date(event.start),
+          summary: event.summary,
+          aiInsights: event.aiInsights,
+        }))
+
+        setMeetings(processedMeetings)
+
+        // Get calendar stats from API
+        const statsResponse = await fetch(
+          `/api/calendar/stats?startDate=${monthStart.toISOString()}&endDate=${monthEnd.toISOString()}`
+        )
+        
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json()
+          if (statsData.success) {
+            setStats(statsData.stats)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch calendar data:', err)
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load calendar data'
+        
+        // Check if it's an authorization error
+        if (errorMessage.includes('No connected account') || errorMessage.includes('unauthorized') || errorMessage.includes('401')) {
+          setNeedsCalendarAuth(true)
+          setError('Calendar authorization required')
+        } else {
+          setError(errorMessage)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCalendarData()
+  }, [currentDate])
+
+  // Helper function to calculate duration
+  const calculateDuration = (start: string, end: string): string => {
+    const startTime = new Date(start)
+    const endTime = new Date(end)
+    const durationMs = endTime.getTime() - startTime.getTime()
+    const minutes = Math.round(durationMs / (1000 * 60))
+    
+    if (minutes < 60) {
+      return `${minutes} min`
+    }
+    
+    const hours = Math.floor(minutes / 60)
+    const remainingMinutes = minutes % 60
+    
+    if (remainingMinutes === 0) {
+      return `${hours}h`
+    }
+    
+    return `${hours}h ${remainingMinutes}m`
+  }
 
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(monthStart)
@@ -59,7 +149,7 @@ export function CalendarDashboard() {
     for (let i = 0; i < 7; i++) {
       formattedDate = format(day, dateFormat)
       const cloneDay = day
-      const dayMeetings = sampleMeetings.filter(meeting => isSameDay(meeting.date, day))
+      const dayMeetings = meetings.filter(meeting => isSameDay(meeting.date, day))
       
       days.push(
         <div
@@ -113,12 +203,58 @@ export function CalendarDashboard() {
     setCurrentDate(subMonths(currentDate, 1))
   }
 
-  const selectedDateMeetings = sampleMeetings.filter(meeting => 
+  const selectedDateMeetings = meetings.filter(meeting => 
     isSameDay(meeting.date, selectedDate)
   )
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <Calendar className="h-8 w-8 animate-pulse mx-auto mb-2" />
+          <p className="text-muted-foreground">Loading calendar...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (needsCalendarAuth) {
+    return (
+      <div className="flex items-center justify-center h-full p-6">
+        <CalendarAuth 
+          onAuthComplete={() => {
+            setNeedsCalendarAuth(false)
+            setError(null)
+            // Reload the page to fetch data with new endpoint
+            window.location.reload()
+          }}
+        />
+      </div>
+    )
+  }
+
+  if (error && !needsCalendarAuth) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+          <p className="text-destructive mb-2">Failed to load calendar</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.reload()}
+            className="mt-4"
+          >
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col lg:flex-row gap-6 flex-1">
       {/* Calendar */}
       <div className="flex-1">
         <Card className="h-full">
@@ -202,6 +338,49 @@ export function CalendarDashboard() {
                           {meeting.type}
                         </Badge>
                       </div>
+                      
+                      {/* AI Insights for upcoming meetings */}
+                      {meeting.aiInsights && (
+                        <div className="mt-3 pt-2 border-t space-y-2">
+                          <div className="flex items-center gap-1">
+                            <Brain className="h-3 w-3 text-blue-500" />
+                            <span className="text-xs font-medium text-blue-600">AI Suggestions</span>
+                          </div>
+                          {meeting.aiInsights.preparation && meeting.aiInsights.preparation.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-muted-foreground">Preparation:</p>
+                              {meeting.aiInsights.preparation.slice(0, 2).map((item, index) => (
+                                <div key={index} className="flex items-start gap-1">
+                                  <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0" />
+                                  <span className="text-xs text-muted-foreground">{item}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Meeting Summary for past meetings */}
+                      {meeting.summary && (
+                        <div className="mt-3 pt-2 border-t space-y-2">
+                          <div className="flex items-center gap-1">
+                            <Brain className="h-3 w-3 text-green-500" />
+                            <span className="text-xs font-medium text-green-600">AI Summary</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{meeting.summary.summary}</p>
+                          {meeting.summary.actionItems.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-muted-foreground">Action Items:</p>
+                              {meeting.summary.actionItems.slice(0, 2).map((item, index) => (
+                                <div key={index} className="flex items-start gap-1">
+                                  <div className="w-1 h-1 rounded-full bg-green-400 mt-1.5 flex-shrink-0" />
+                                  <span className="text-xs text-muted-foreground">{item}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -219,28 +398,73 @@ export function CalendarDashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick stats */}
+        {/* Calendar Stats */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">This Week</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              This Month
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Meetings</span>
-                <span className="text-2xl font-bold">12</span>
+                <span className="text-2xl font-bold">{stats?.totalMeetings || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Hours Scheduled</span>
-                <span className="text-2xl font-bold">18.5</span>
+                <span className="text-2xl font-bold">{stats?.totalHours || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Video Calls</span>
-                <span className="text-2xl font-bold">8</span>
+                <span className="text-sm text-muted-foreground">Upcoming</span>
+                <span className="text-2xl font-bold">{stats?.upcomingMeetings || 0}</span>
               </div>
+              {stats?.productivityScore && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Productivity Score</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-2xl font-bold">{stats.productivityScore}</span>
+                    <span className="text-sm text-muted-foreground">/100</span>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* AI Insights */}
+        {stats?.trends && stats.trends.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                AI Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {stats.trends.slice(0, 2).map((trend, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">{trend}</span>
+                  </div>
+                ))}
+                {stats.recommendations && stats.recommendations.length > 0 && (
+                  <div className="pt-2 border-t">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Recommendations:</p>
+                    {stats.recommendations.slice(0, 1).map((rec, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <TrendingUp className="h-3 w-3 text-green-500 mt-1 flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground">{rec}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Upcoming meetings */}
         <Card>
@@ -249,7 +473,7 @@ export function CalendarDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {sampleMeetings.slice(0, 3).map((meeting) => (
+              {meetings.slice(0, 3).filter(meeting => new Date(meeting.date) >= new Date()).map((meeting) => (
                 <div key={meeting.id} className="flex items-center space-x-2 text-sm">
                   <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                   <span className="font-medium">{meeting.time}</span>
@@ -260,6 +484,7 @@ export function CalendarDashboard() {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   )
 }
