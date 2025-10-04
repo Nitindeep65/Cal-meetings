@@ -7,7 +7,7 @@ import {
   MoreVerticalIcon,
   UserCircleIcon,
 } from "lucide-react"
-import { signOut } from "next-auth/react"
+import { signOut } from "@/lib/nextAuthShim"
 
 import {
   Avatar,

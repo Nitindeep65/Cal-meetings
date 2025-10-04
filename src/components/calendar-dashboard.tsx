@@ -6,8 +6,8 @@ import { ChevronLeft, ChevronRight, Plus, Clock, Users, Video, Calendar, Brain, 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CalendarAuth } from '@/components/calendar-auth'
-import type { EnhancedCalendarEvent, CalendarStats } from '@/lib/calendar-service'
+import type { CalendarEvent, CalendarStats } from '@/lib/google-calendar-service'
+import { useSession, signIn } from 'next-auth/react'
 
 // Interface for processed meetings to display
 interface ProcessedMeeting {
@@ -31,6 +31,7 @@ interface ProcessedMeeting {
 }
 
 export function CalendarDashboard() {
+  const { status } = useSession()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [meetings, setMeetings] = useState<ProcessedMeeting[]>([])
@@ -38,6 +39,68 @@ export function CalendarDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [needsCalendarAuth, setNeedsCalendarAuth] = useState(false)
+  const [generatingAI, setGeneratingAI] = useState<string | null>(null)
+
+  // AI Handler Functions
+  const generateMeetingSummary = async (meeting: ProcessedMeeting) => {
+    setGeneratingAI(meeting.id)
+    try {
+      const response = await fetch('/api/calendar/summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: meeting.id,
+          eventTitle: meeting.title,
+          eventDescription: `Meeting duration: ${meeting.duration}`,
+          attendees: Array(meeting.attendees).fill('Attendee')
+        })
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        // Update the meeting with the generated summary
+        setMeetings(prev => prev.map(m => 
+          m.id === meeting.id 
+            ? { ...m, summary: data.summary }
+            : m
+        ))
+      }
+    } catch (error) {
+      console.error('Failed to generate summary:', error)
+    } finally {
+      setGeneratingAI(null)
+    }
+  }
+
+  const generateMeetingInsights = async (meeting: ProcessedMeeting) => {
+    setGeneratingAI(meeting.id)
+    try {
+      const response = await fetch('/api/calendar/insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventTitle: meeting.title,
+          eventDescription: `Meeting duration: ${meeting.duration}`,
+          attendees: Array(meeting.attendees).fill('Attendee'),
+          isUpcoming: true
+        })
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        // Update the meeting with the generated insights
+        setMeetings(prev => prev.map(m => 
+          m.id === meeting.id 
+            ? { ...m, aiInsights: data.insights }
+            : m
+        ))
+      }
+    } catch (error) {
+      console.error('Failed to generate insights:', error)
+    } finally {
+      setGeneratingAI(null)
+    }
+  }
 
   // Fetch calendar data
   useEffect(() => {
@@ -66,7 +129,7 @@ export function CalendarDashboard() {
         }
 
         // Convert events to ProcessedMeeting format
-        const processedMeetings: ProcessedMeeting[] = eventsData.events.map((event: EnhancedCalendarEvent) => ({
+        const processedMeetings: ProcessedMeeting[] = eventsData.events.map((event: CalendarEvent) => ({
           id: event.id,
           title: event.title,
           time: format(new Date(event.start), 'h:mm a'),
@@ -75,8 +138,9 @@ export function CalendarDashboard() {
                 event.location ? 'in-person' : 'unknown',
           attendees: event.attendees?.length || 0,
           date: new Date(event.start),
-          summary: event.summary,
-          aiInsights: event.aiInsights,
+          // Remove AI-related properties since we're not using them anymore
+          summary: undefined,
+          aiInsights: undefined,
         }))
 
         setMeetings(processedMeetings)
@@ -207,6 +271,41 @@ export function CalendarDashboard() {
     isSameDay(meeting.date, selectedDate)
   )
 
+  // Handle authentication states
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <Calendar className="h-8 w-8 animate-pulse mx-auto mb-2" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="flex items-center justify-center h-full p-6">
+        <Card className="p-6 text-center">
+          <CardHeader>
+            <CardTitle>Authentication Required</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Please sign in with Google to access your calendar dashboard.
+            </p>
+            <Button 
+              onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+              className="w-full"
+            >
+              Sign in with Google Calendar
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -221,14 +320,22 @@ export function CalendarDashboard() {
   if (needsCalendarAuth) {
     return (
       <div className="flex items-center justify-center h-full p-6">
-        <CalendarAuth 
-          onAuthComplete={() => {
-            setNeedsCalendarAuth(false)
-            setError(null)
-            // Reload the page to fetch data with new endpoint
-            window.location.reload()
-          }}
-        />
+        <Card className="p-6 text-center">
+          <CardHeader>
+            <CardTitle>Calendar Access Required</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Please sign in with Google to access your calendar data.
+            </p>
+            <Button 
+              onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+              className="w-full"
+            >
+              Sign in with Google Calendar
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -337,6 +444,33 @@ export function CalendarDashboard() {
                         <Badge variant="secondary" className="ml-2 text-xs">
                           {meeting.type}
                         </Badge>
+                      </div>
+
+                      {/* AI Action Buttons */}
+                      <div className="flex gap-2 mt-3">
+                        {meeting.date < new Date() ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => generateMeetingSummary(meeting)}
+                            disabled={generatingAI === meeting.id}
+                          >
+                            <Brain className="h-3 w-3 mr-1" />
+                            {generatingAI === meeting.id ? 'Generating...' : 'Generate Summary'}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => generateMeetingInsights(meeting)}
+                            disabled={generatingAI === meeting.id}
+                          >
+                            <Lightbulb className="h-3 w-3 mr-1" />
+                            {generatingAI === meeting.id ? 'Generating...' : 'Get Insights'}
+                          </Button>
+                        )}
                       </div>
                       
                       {/* AI Insights for upcoming meetings */}

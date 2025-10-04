@@ -12,7 +12,7 @@ import { buttonVariants } from "./ui/button";
 import { ClientModeToggle } from "./ClientModeToggle";
 import { ClientMobileMenu } from "./ClientMobileMenu";
 import { LogoIcon } from "./Icons";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut } from "@/lib/nextAuthShim";
 import { Button } from "./ui/button";
 
 interface RouteProps {
@@ -41,6 +41,7 @@ const routeList: RouteProps[] = [
 
 export const Navbar = () => {
   const { status } = useSession();
+  const sessionStatus = status as string
 
   return (
     <header className="sticky border-b-[1px] top-0 z-40 w-full bg-white dark:border-b-slate-700 dark:bg-background">
@@ -80,7 +81,7 @@ export const Navbar = () => {
           </nav>
 
           <div className="hidden md:flex gap-2">
-            {status === "authenticated" ? (
+            {sessionStatus === "authenticated" ? (
               <>
                 <Link
                   href="/dashboard"
