@@ -1,11 +1,13 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { MagnifierIcon, WalletIcon, ChartIcon } from "./Icons";
 import cubeLeg from "../assets/cube-leg.png";
+import { ReactElement } from "react";
+import Image from "next/image";
 
 interface ServiceProps {
   title: string;
   description: string;
-  icon: JSX.Element;
+  icon: ReactElement;
 }
 
 const serviceList: ServiceProps[] = [
@@ -65,10 +67,12 @@ export const Services = () => {
           </div>
         </div>
 
-        <img
+        <Image
           src={cubeLeg}
           className="w-[300px] md:w-[500px] lg:w-[600px] object-contain"
           alt="About services"
+          width={600}
+          height={400}
         />
       </div>
     </section>

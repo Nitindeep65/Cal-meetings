@@ -9,11 +9,13 @@ import {
 import image from "../assets/growth.png";
 import image3 from "../assets/reflecting.png";
 import image4 from "../assets/looking-ahead.png";
+import { StaticImageData } from "next/image";
+import Image from "next/image";
 
 interface FeatureProps {
   title: string;
   description: string;
-  image: string;
+  image: StaticImageData;
 }
 
 const features: FeatureProps[] = [
@@ -85,10 +87,12 @@ export const Features = () => {
             <CardContent>{description}</CardContent>
 
             <CardFooter>
-              <img
+              <Image
                 src={image}
                 alt="About feature"
                 className="w-[200px] lg:w-[300px] mx-auto"
+                width={300}
+                height={200}
               />
             </CardFooter>
           </Card>

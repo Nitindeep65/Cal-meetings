@@ -11,7 +11,6 @@ import {
   HelpCircle,
   Search,
   Plus,
-  LayoutDashboard,
 } from "lucide-react"
 
 import { NavDocuments } from "@/components/nav-documents"
